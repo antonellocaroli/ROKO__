@@ -3,14 +3,13 @@
 
 EAPI=7
 
-PYTHON_COMPAT=( python3_{6,7,8,9} )
+PYTHON_COMPAT=( python3_{6..11} )
+MY_PV="0.6.9-1"
 
 inherit meson distutils-r1 multilib-minimal flag-o-matic git-r3
 
 DESCRIPTION="A Vulkan and OpenGL overlay for monitoring FPS, temperatures, CPU/GPU load and more. AMDGPU testing branch"
 HOMEPAGE="https://github.com/flightlessmango/MangoHud"
-
-MY_PV="0.6.7-1"
 
 EGIT_REPO_URI="https://github.com/flightlessmango/MangoHud.git"
 if [[ ${PV} == "9999" ]]; then
@@ -50,8 +49,8 @@ BDEPEND="
 "
 DEPEND="
 	!games-util/mangohud
+	media-libs/glfw
 	dev-util/glslang
-	>=dev-util/vulkan-headers-1.2
 	media-libs/vulkan-loader[${MULTILIB_USEDEP}]
 	video_cards_amdgpu? (
 		x11-libs/libdrm[video_cards_amdgpu]
@@ -77,11 +76,13 @@ src_unpack() {
 	mv imgui-1.81 ${S}/subprojects
 	mv spdlog-1.8.5 ${S}/subprojects
 	mv Vulkan-Headers-1.2.158 ${S}/subprojects
+
+	mkdir ${S}/subprojects/nlohmann_json-3.10.5
+	mv {single_,}include LICENSE.MIT meson.build ${S}/subprojects/nlohmann_json-3.10.5
 }
 multilib_src_configure() {
 	local emesonargs=(
 		-Dappend_libdir_mangohud=false
-		-Duse_system_vulkan=enabled
 		-Dinclude_doc=false
 		$(meson_feature video_cards_nvidia with_nvml)
 		$(meson_feature xnvctrl with_xnvctrl)
@@ -101,7 +102,7 @@ multilib_src_install() {
 }
 
 multilib_src_install_all() {
-	dodoc "${S}/bin/MangoHud.conf"
+	dodoc "${S}/data/MangoHud.conf"
 
 	einstalldocs
 }
